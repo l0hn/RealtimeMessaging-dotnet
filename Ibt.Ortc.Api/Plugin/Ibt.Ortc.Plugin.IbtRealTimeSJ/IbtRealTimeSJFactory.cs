@@ -12,7 +12,7 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
     /// <remarks>
     /// Factory Type = IbtRealTimeSJ.
     /// </remarks>
-    [ExportOrtcFactory(FactoryType = "IbtRealTimeSJ")]
+    //[ExportOrtcFactory(FactoryType = "IbtRealTimeSJ")]
     public class IbtRealTimeSJFactory : IOrtcFactory
     {
         #region Attributes

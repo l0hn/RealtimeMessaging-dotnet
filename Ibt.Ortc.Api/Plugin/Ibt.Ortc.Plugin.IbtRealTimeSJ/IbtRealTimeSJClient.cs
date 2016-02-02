@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Concurrent;
+
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,7 +8,6 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Threading;
 using Ibt.Ortc.Api.Extensibility;
@@ -46,8 +45,8 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
         private bool _callDisconnectedCallback;
         private bool _waitingServerResponse;
         private List<KeyValuePair<string, string>> _permissions;
-        private ConcurrentDictionary<string, ChannelSubscription> _subscribedChannels;
-        private ConcurrentDictionary<string, ConcurrentDictionary<int, BufferedMessage>> _multiPartMessagesBuffer;
+        private Dictionary<string, ChannelSubscription> _subscribedChannels;
+        private Dictionary<string, Dictionary<int, BufferedMessage>> _multiPartMessagesBuffer;
         private WebSocketConnection _webSocketConnection;
         private DateTime? _reconnectStartedAt;
         private DateTime? _lastKeepAlive; // Holds the time of the last keep alive received from the server
@@ -88,11 +87,11 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
             _reconnectStartedAt = null;
             _reconnectTimer = null;
 
-            _subscribedChannels = new ConcurrentDictionary<string, ChannelSubscription>();
-            _multiPartMessagesBuffer = new ConcurrentDictionary<string, ConcurrentDictionary<int, BufferedMessage>>();
+            _subscribedChannels = new Dictionary<string, ChannelSubscription>();
+            _multiPartMessagesBuffer = new Dictionary<string, Dictionary<int, BufferedMessage>>();
 
             // To catch unobserved exceptions
-            TaskScheduler.UnobservedTaskException += new EventHandler<UnobservedTaskExceptionEventArgs>(TaskScheduler_UnobservedTaskException);
+            //TaskScheduler.UnobservedTaskException += new EventHandler<UnobservedTaskExceptionEventArgs>(TaskScheduler_UnobservedTaskException);
 
             // To use the same context inside the tasks and prevent cross-thread operation errors (Windows Application and WPF Application)
             _synchContext = System.Threading.SynchronizationContext.Current;
@@ -516,14 +515,22 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
                 {
                     if (!_subscribedChannels.ContainsKey(channel))
                     {
-                        _subscribedChannels.TryAdd(channel,
-                            new ChannelSubscription
+                        try
+                        {
+                            _subscribedChannels.Add(channel,
+                                new ChannelSubscription
                             {
                                 IsSubscribing = true,
                                 IsSubscribed = false,
                                 SubscribeOnReconnected = subscribeOnReconnected,
                                 OnMessage = onMessage
                             });
+                        }
+                        catch (Exception ex)
+                        {
+                            
+                        }
+
                     }
 
                     try
@@ -868,7 +875,14 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
                         for (int i = 0; i < channelsToRemove.Count; i++)
                         {
                             ChannelSubscription removeResult = null;
-                            _subscribedChannels.TryRemove(channelsToRemove[i].ToString(), out removeResult);
+                            try
+                            {
+                                _subscribedChannels.Remove(channelsToRemove[i].ToString());
+                            }
+                            catch (Exception ex)
+                            {
+                                
+                            }
                         }
 
                         // Clean messages buffer (can have lost message parts in memory)
@@ -1236,7 +1250,7 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
                     int messageCurrentPart = 1;
                     int messageTotalPart = 1;
                     bool lastPart = false;
-                    ConcurrentDictionary<int, BufferedMessage> messageParts = null;
+                    Dictionary<int, BufferedMessage> messageParts = null;
 
                     if (multiPartMatch.Success)
                     {
@@ -1268,7 +1282,15 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
                         {
                             if (!_multiPartMessagesBuffer.ContainsKey(messageId))
                             {
-                                _multiPartMessagesBuffer.TryAdd(messageId, new ConcurrentDictionary<int, BufferedMessage>());
+                                try
+                                {
+                                    _multiPartMessagesBuffer.Add(messageId, new Dictionary<int, BufferedMessage>());
+                                }
+                                catch (Exception ex)
+                                {
+                                    
+                                }
+
                             }
 
 
@@ -1278,8 +1300,14 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
                             {
                                 lock (messageParts)
                                 {
-
-                                    messageParts.TryAdd(messageCurrentPart, new BufferedMessage(messageCurrentPart, messageReceived));
+                                    try
+                                    {
+                                        messageParts.Add(messageCurrentPart, new BufferedMessage(messageCurrentPart, messageReceived));
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        
+                                    }
 
                                     // Last message part
                                     if (messageParts.Count == messageTotalPart)
@@ -1334,8 +1362,14 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
                                             //}
 
                                             // Remove from messages buffer
-                                            ConcurrentDictionary<int, BufferedMessage> removeResult = null;
-                                            _multiPartMessagesBuffer.TryRemove(messageId, out removeResult);
+                                            try
+                                            {
+                                                _multiPartMessagesBuffer.Remove(messageId);
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                
+                                            }
                                         }
 
                                         if (!String.IsNullOrEmpty(messageReceived))
@@ -1612,10 +1646,10 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
-        {
-            e.SetObserved();
-        }
+//        private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+//        {
+//            e.SetObserved();
+//        }
 
         /// <summary>
         /// 
@@ -1803,7 +1837,7 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
                 }
                 else
                 {
-                    Task.Factory.StartNew(() => ev(this));
+                    ThreadPool.QueueUserWorkItem((o) => ev(this));
                 }
             }
         }
@@ -1820,7 +1854,7 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
                 }
                 else
                 {
-                    Task.Factory.StartNew(() => ev(this));
+                    ThreadPool.QueueUserWorkItem((o) => ev(this));
                 }
             }
         }
@@ -1837,7 +1871,7 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
                 }
                 else
                 {
-                    Task.Factory.StartNew(() => ev(this, channel));
+                    ThreadPool.QueueUserWorkItem((o) => ev(this, channel));
                 }
             }
         }
@@ -1854,7 +1888,7 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
                 }
                 else
                 {
-                    Task.Factory.StartNew(() => ev(this, channel));
+                    ThreadPool.QueueUserWorkItem((o) => ev(this, channel));
                 }
             }
         }
@@ -1871,7 +1905,7 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
                 }
                 else
                 {
-                    Task.Factory.StartNew(() => ev(this, ex));
+                    ThreadPool.QueueUserWorkItem((o) => ev(this, ex));
                 }
             }
         }
@@ -1888,7 +1922,7 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
                 }
                 else
                 {
-                    Task.Factory.StartNew(() => ev(this));
+                    ThreadPool.QueueUserWorkItem((o) => ev(this));
                 }
             }
         }
@@ -1905,7 +1939,7 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
                 }
                 else
                 {
-                    Task.Factory.StartNew(() => ev(this));
+                    ThreadPool.QueueUserWorkItem((o) => ev(this));
                 }
             }
         }

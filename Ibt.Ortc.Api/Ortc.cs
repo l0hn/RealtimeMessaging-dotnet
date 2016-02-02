@@ -1,18 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Security;
-using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Ibt.Ortc.Api.Extensibility;
 using System.Web;
+using System.Linq;
 
 namespace Ibt.Ortc.Api
 {
@@ -51,9 +48,9 @@ namespace Ibt.Ortc.Api
         /// <value>
         /// Ortc factories loaded via MEF.
         /// </value>
-        [ImportMany(typeof(IOrtcFactory), AllowRecomposition = true)]
-        internal Lazy<IOrtcFactory, IOrtcFactoryAttributes>[] OrtcProviders { get; set; }
-
+//        [ImportMany(typeof(IOrtcFactory), AllowRecomposition = true)]
+//        internal Lazy<IOrtcFactory, IOrtcFactoryAttributes>[] OrtcProviders { get; set; }
+//
         #endregion
 
         #region Constructors (2)
@@ -111,11 +108,7 @@ namespace Ibt.Ortc.Api
         /// </example>
         public Ortc()
         {
-            var catalog = new DirectoryCatalog(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "*.dll");
 
-            var container = new CompositionContainer(catalog);
-
-            container.ComposeParts(this);
         }
 
         #endregion

@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Net;
 using System.IO;
-using System.Threading.Tasks;
+
 using System.Web;
+using System.Threading;
 
 namespace Ibt.Ortc.Api.Extensibility
 {
@@ -78,7 +77,7 @@ namespace Ibt.Ortc.Api.Extensibility
                             }
                             else
                             {
-                                Task.Factory.StartNew(() => callback(null, responseBody));
+                                ThreadPool.QueueUserWorkItem((o) => callback(null, responseBody));
                             }
                         }                        
                     }
@@ -101,7 +100,7 @@ namespace Ibt.Ortc.Api.Extensibility
                             }
                             else
                             {
-                                Task.Factory.StartNew(() => callback(new OrtcPresenceException(errorMessage), null));
+                                ThreadPool.QueueUserWorkItem((o) => callback(new OrtcPresenceException(errorMessage), null));
                             }
                         }
                     }
@@ -126,7 +125,7 @@ namespace Ibt.Ortc.Api.Extensibility
                                 }
                                 else
                                 {
-                                    Task.Factory.StartNew(() => callback(new OrtcPresenceException(errorMessage), null));
+                                    ThreadPool.QueueUserWorkItem((o) => callback(new OrtcPresenceException(errorMessage), null));
                                 }
                             }
                         }
@@ -147,7 +146,7 @@ namespace Ibt.Ortc.Api.Extensibility
                         }
                         else
                         {
-                            Task.Factory.StartNew(() => callback(new OrtcPresenceException(ex.Message), null));
+                            ThreadPool.QueueUserWorkItem((o) => callback(new OrtcPresenceException(ex.Message), null));
                         }
                     }
                 }

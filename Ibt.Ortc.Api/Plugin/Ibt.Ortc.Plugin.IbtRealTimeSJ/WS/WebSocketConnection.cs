@@ -1,9 +1,12 @@
 ﻿using System;
-using System.Runtime.Serialization.Json;
+
 using System.Text;
-using System.Threading.Tasks;
+
 using Ibt.Ortc.Api.Extensibility;
 using WebSocket4Net;
+using System.Threading;
+using System.ComponentModel;
+using Newtonsoft.Json;
 
 namespace Ibt.Ortc.Plugin.IbtRealTimeSJ.WS
 {
@@ -86,12 +89,7 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ.WS
 
             try
             {
-                DataContractJsonSerializer serializer = new DataContractJsonSerializer(data.GetType());
-                var stream = new System.IO.MemoryStream();
-                serializer.WriteObject(stream, data);
-                string jsonData = Encoding.UTF8.GetString(stream.ToArray(), 0, (int)stream.Length);
-                stream.Close();
-                result = jsonData;
+                return JsonConvert.SerializeObject(data);
             }
             catch
             {
@@ -128,7 +126,7 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ.WS
 
             if (ev != null)
             {
-                Task.Factory.StartNew(() => ev(e.Message));
+                ThreadPool.QueueUserWorkItem((o) => ev(e.Message));
             }
         }
 
@@ -138,7 +136,7 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ.WS
 
             if (ev != null)
             {
-                Task.Factory.StartNew(() => ev());
+                ThreadPool.QueueUserWorkItem((o) => ev());
             }
         }
 
@@ -148,7 +146,7 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ.WS
 
             if (ev != null)
             {
-                Task.Factory.StartNew(() => ev());
+                ThreadPool.QueueUserWorkItem((o) => ev());
             }
         }
 
@@ -158,7 +156,7 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ.WS
 
             if (ev != null)
             {
-                Task.Factory.StartNew(() => ev(e.Exception));
+                ThreadPool.QueueUserWorkItem((o) => ev(e.Exception));
             }
         }
 
