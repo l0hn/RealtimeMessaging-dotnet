@@ -3,8 +3,6 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{3DA6DE9C-E3E2-4806-BF3F-E96F0F2D42DF}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -36,7 +34,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="LinqBridge">
-      <HintPath>..\packages\LinqBridge.1.3.0\lib\net20\LinqBridge.dll</HintPath>
+      <HintPath>..\..\VPN\packages\LinqBridge.1.3.0\lib\net20\LinqBridge.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -61,17 +59,17 @@
     <PostBuildEvent>
     </PostBuildEvent>
   </PropertyGroup>
-  <Target Name="AfterBuild" Condition=" '$(Configuration)' == 'Release' ">
-    <Message Importance="high" Text="DUPA !!!!" />
-    <PropertyGroup>
-      <ReferenceAssemblies>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5</ReferenceAssemblies>
-    </PropertyGroup>
-    <CreateItem Condition="'%(Extension)'=='.dll' AND '%(Filename)' != 'Ibt.Ortc.Api.Extensibility'" Include="@(ReferenceCopyLocalPaths)">
-      <Output TaskParameter="Include" ItemName="IlmergeAssemblies" />
-    </CreateItem>
-    <Exec Command="&quot;$(SolutionDir)tools\ILMerge.exe&quot; /out:&quot;$(SolutionDir)Ibt.Ortc.Api\bin\Deploy\Ibt.Ortc.Api.dll&quot; /ndebug /targetplatform:v4,&quot; $(ReferenceAssemblies)&quot;  &quot;$(SolutionDir)Ibt.Ortc.Api\bin\Release\Ibt.Ortc.Api.dll&quot; @(IlmergeAssemblies-&gt;'&quot;%(FullPath)&quot;', ' ') " />
-    <Copy SourceFiles="$(SolutionDir)Ibt.Ortc.Api\bin\Release\Ibt.Ortc.Api.Extensibility.dll" DestinationFolder="$(SolutionDir)Ibt.Ortc.Api\bin\Deploy\" />
-  </Target>
+  <!--  <Target Name="AfterBuild" Condition=" '$(Configuration)' == 'Release' ">-->
+  <!--    <Message Importance="high" Text="DUPA !!!!" />-->
+  <!--    <PropertyGroup>-->
+  <!--      <ReferenceAssemblies>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5</ReferenceAssemblies>-->
+  <!--    </PropertyGroup>-->
+  <!--    <CreateItem Condition="'%(Extension)'=='.dll' AND '%(Filename)' != 'Ibt.Ortc.Api.Extensibility'" Include="@(ReferenceCopyLocalPaths)">-->
+  <!--      <Output TaskParameter="Include" ItemName="IlmergeAssemblies" />-->
+  <!--    </CreateItem>-->
+  <!--    <Exec Command="&quot;$(SolutionDir)tools\ILMerge.exe&quot; /out:&quot;$(SolutionDir)Ibt.Ortc.Api\bin\Deploy\Ibt.Ortc.Api.dll&quot; /ndebug /targetplatform:v4,&quot; $(ReferenceAssemblies)&quot;  &quot;$(SolutionDir)Ibt.Ortc.Api\bin\Release\Ibt.Ortc.Api.dll&quot; @(IlmergeAssemblies-&gt;'&quot;%(FullPath)&quot;', ' ') " />-->
+  <!--    <Copy SourceFiles="$(SolutionDir)Ibt.Ortc.Api\bin\Release\Ibt.Ortc.Api.Extensibility.dll" DestinationFolder="$(SolutionDir)Ibt.Ortc.Api\bin\Deploy\" />-->
+  <!--  </Target>-->
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
