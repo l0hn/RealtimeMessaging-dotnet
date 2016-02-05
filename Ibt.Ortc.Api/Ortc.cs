@@ -402,7 +402,7 @@ namespace Ibt.Ortc.Api
             request.ProtocolVersion = HttpVersion.Version11;
             request.Method = "POST";
 
-            string postParameters = String.Format("AT={0}&AK={1}&PK={2}&C={3}&M={4}", authenticationToken, applicationKey, privateKey, channel, HttpUtility.UrlEncode(message));
+            string postParameters = String.Format("AT={0}&AK={1}&PK={2}&C={3}&M={4}", authenticationToken, applicationKey, privateKey, channel,Uri.EscapeDataString(message));
 
             byte[] postBytes = Encoding.UTF8.GetBytes(postParameters);
 

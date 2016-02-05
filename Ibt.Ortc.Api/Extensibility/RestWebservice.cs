@@ -55,6 +55,7 @@ namespace Ibt.Ortc.Api.Extensibility
 
                 try
                 {
+                    #if ENABLE_REST
                     HttpWebRequest asyncRequest = (HttpWebRequest)asynchronousResult.AsyncState;
 
                     HttpWebResponse response = (HttpWebResponse)asyncRequest.EndGetResponse(asynchronousResult);
@@ -81,9 +82,11 @@ namespace Ibt.Ortc.Api.Extensibility
                             }
                         }                        
                     }
+                    #endif
                 }
                 catch (WebException wex)
                 {
+                    #if ENABLE_REST
                     String errorMessage = String.Empty;
                     if (wex.Response == null)
                     {
@@ -130,9 +133,11 @@ namespace Ibt.Ortc.Api.Extensibility
                             }
                         }
                     }
+                    #endif
                 }
                 catch (Exception ex)
                 {
+                    #if ENABLE_REST
                     if (!String.IsNullOrEmpty(HttpRuntime.AppDomainAppVirtualPath))
                     {
                         callback(new OrtcPresenceException(ex.Message), null);
@@ -149,6 +154,7 @@ namespace Ibt.Ortc.Api.Extensibility
                             ThreadPool.QueueUserWorkItem((o) => callback(new OrtcPresenceException(ex.Message), null));
                         }
                     }
+                    #endif
                 }
             }), request);
         }
