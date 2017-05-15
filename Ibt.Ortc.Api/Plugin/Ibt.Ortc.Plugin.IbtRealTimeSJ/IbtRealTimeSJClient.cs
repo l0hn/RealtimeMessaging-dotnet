@@ -860,7 +860,10 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
                                     channelToValidate = channel.Substring(0, domainChannelCharacterIndex + 1) + "*";
                                 }
 
-                                string hash = _permissions.Where(c => c.Key == channel || c.Key == channelToValidate).FirstOrDefault().Value;
+                                string hash = _permissions.ToList() // avoid collection changed
+                                    .Where(c => c.Key == channel || c.Key == channelToValidate)
+                                    .FirstOrDefault()
+                                    .Value;
 
                                 string s = String.Format("subscribe;{0};{1};{2};{3}", _applicationKey, _authenticationToken, channel, hash);
 
