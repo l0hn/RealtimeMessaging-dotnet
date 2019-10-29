@@ -52,8 +52,9 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
         private DateTime? _lastKeepAlive; // Holds the time of the last keep alive received from the server
         private SynchronizationContext _synchContext; // To synchronize different contexts, preventing cross-thread operation errors (Windows Application and WPF Application))
         private System.Timers.Timer _reconnectTimer; // Timer to reconnect
+        private readonly object _reconnectTimeLock = new object();
         private int _sessionExpirationTime; // minutes
-        private System.Timers.Timer _heartbeatTimer; 
+        private System.Timers.Timer _heartbeatTimer;
 
         #endregion
 
@@ -905,9 +906,12 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
 
                     if (arguments.IndexOf("busy") < 0)
                     {
-                        if (_reconnectTimer != null)
+                        lock (_reconnectTimeLock)
                         {
-                            _reconnectTimer.Stop();
+                            if (_reconnectTimer != null)
+                            {
+                                _reconnectTimer.Stop();
+                            }
                         }
                     }
 
@@ -1496,9 +1500,13 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
 
             _reconnectStartedAt = null;
 
-            if (_reconnectTimer != null)
+
+            lock (_reconnectTimeLock)
             {
-                _reconnectTimer.Stop();
+                if (_reconnectTimer != null)
+                {
+                    _reconnectTimer.Stop();
+                }
             }
         }
 
@@ -1535,19 +1543,32 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
             }
         }
 
-        private void StartReconnectTimer()
+        private void StartReconnectTimer(bool disposedOnce = false)
         {
-            if (_reconnectTimer != null)
+            try
             {
-                _reconnectTimer.Stop();
+                lock (_reconnectTimeLock)
+                {
+                    if (_reconnectTimer != null)
+                    {
+                        _reconnectTimer.Stop();
+                    }
+
+                    _reconnectTimer = new System.Timers.Timer();
+                    _reconnectTimer.AutoReset = false;
+                    _reconnectTimer.Elapsed += new ElapsedEventHandler(_reconnectTimer_Elapsed);
+                    _reconnectTimer.Interval = ConnectionTimeout;
+                    _reconnectTimer.Start();
+                }
             }
+            catch (ObjectDisposedException)
+            {
+                if (disposedOnce)
+                    throw; // don't loop forever
 
-            _reconnectTimer = new System.Timers.Timer();
-
-            _reconnectTimer.AutoReset = false;
-            _reconnectTimer.Elapsed += new ElapsedEventHandler(_reconnectTimer_Elapsed);
-            _reconnectTimer.Interval = ConnectionTimeout;
-            _reconnectTimer.Start();
+                Thread.Sleep(100);
+                StartReconnectTimer(true);
+            }
         }
 
         /// <summary>
