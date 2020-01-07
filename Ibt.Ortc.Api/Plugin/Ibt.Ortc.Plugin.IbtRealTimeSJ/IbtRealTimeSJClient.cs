@@ -230,7 +230,10 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
                         channelToValidate = channel.Substring(0, domainChannelCharacterIndex + 1) + "*";
                     }
 
-                    string hash = _permissions.Where(c => c.Key == channel || c.Key == channelToValidate).FirstOrDefault().Value;
+                    string hash = _permissions.ToList() // avoid collection modified
+                        .Where(c => c.Key == channel || c.Key == channelToValidate)
+                        .FirstOrDefault()
+                        .Value;
 
                     if (_permissions != null && _permissions.Count > 0 && String.IsNullOrEmpty(hash))
                     {
@@ -506,7 +509,10 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
                     channelToValidate = channel.Substring(0, domainChannelCharacterIndex + 1) + "*";
                 }
 
-                string hash = _permissions.Where(c => c.Key == channel || c.Key == channelToValidate).FirstOrDefault().Value;
+                string hash = _permissions.ToList() // avoid collection changed
+                    .Where(c => c.Key == channel || c.Key == channelToValidate)
+                    .FirstOrDefault()
+                    .Value;
 
                 if (_permissions != null && _permissions.Count > 0 && String.IsNullOrEmpty(hash))
                 {
@@ -842,7 +848,8 @@ namespace Ibt.Ortc.Plugin.IbtRealTimeSJ
                         ArrayList channelsToRemove = new ArrayList();
 
                         // Subscribe to the previously subscribed channels
-                        foreach (KeyValuePair<string, ChannelSubscription> item in _subscribedChannels)
+                        var subChannels = _subscribedChannels.ToDictionary(p => p.Key, p => p.Value); // copy to avoid infrequent collection modified exception
+                        foreach (KeyValuePair<string, ChannelSubscription> item in subChannels)
                         {
                             string channel = item.Key;
                             ChannelSubscription channelSubscription = item.Value;
